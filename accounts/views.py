@@ -3,11 +3,27 @@ from django.views.generic import FormView
 from django.contrib.auth import login,logout
 from .forms import UserRegisterForm, UserUpdateForm
 from django.urls import reverse_lazy
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
+from django.contrib.auth.forms import PasswordChangeForm
 from django.views import View
+from django.contrib import messages
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils import timezone
 
 # Create your views here.
 
+def send_transaction_mail(user,subject,template):
+    
+    
+    mail_message = render_to_string(template, {
+        'user': user,
+        'time': timezone.now(),
+    })
+        
+    send_mail = EmailMultiAlternatives(subject, '' , to=[user.email])
+    send_mail.attach_alternative(mail_message, 'text/html')
+    send_mail.send()
 
 class UserRegisterView(FormView):
     form_class = UserRegisterForm
@@ -25,6 +41,21 @@ class UserLoginView(LoginView):
     
     def get_success_url(self):
         return reverse_lazy('home')
+    
+
+class UserPasswordChange(PasswordChangeView):
+    form_class = PasswordChangeForm
+    template_name = 'accounts/password_change.html'
+    success_url = reverse_lazy('profile')
+    
+    def form_class(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Password Change Successfully!')
+    
+        send_transaction_mail(self.request.user, "Password Change Successful", "accounts/pass_change_mail.html")
+        
+        return response
+
     
 class UserLogoutView(LogoutView):
     def dispatch(self, request, *args, **kwargs):
