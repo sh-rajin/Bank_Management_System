@@ -47,13 +47,21 @@ class UserPasswordChange(PasswordChangeView):
     form_class = PasswordChangeForm
     template_name = 'accounts/password_change.html'
     success_url = reverse_lazy('profile')
-    
-    def form_class(self, form):
+
+    def form_valid(self, form):
+        # Call the parent class's form_valid method
         response = super().form_valid(form)
-        messages.success(self.request, 'Password Change Successfully!')
-    
-        send_transaction_mail(self.request.user, "Password Change Successful", "accounts/pass_change_mail.html")
-        
+
+        # Add a success message
+        messages.success(self.request, 'Password changed successfully!')
+
+        # Send a transactional email (assuming you have a function to send emails)
+        send_transaction_mail(
+            self.request.user, 
+            "Password Change Successful", 
+            "accounts/password_change_email.html"
+        )
+
         return response
 
     
