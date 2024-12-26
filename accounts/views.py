@@ -21,9 +21,13 @@ def send_transaction_mail(user,subject,template):
         'time': timezone.now(),
     })
         
-    send_mail = EmailMultiAlternatives(subject, '' , to=[user.email])
-    send_mail.attach_alternative(mail_message, 'text/html')
-    send_mail.send()
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body='',
+        to=[user.email],
+    )
+    email.attach_alternative(mail_message, 'text/html')
+    email.send()
 
 class UserRegisterView(FormView):
     form_class = UserRegisterForm
@@ -59,7 +63,7 @@ class UserPasswordChange(PasswordChangeView):
         send_transaction_mail(
             self.request.user, 
             "Password Change Successful", 
-            "accounts/password_change_email.html"
+            "accounts/password_change_mail.html"
         )
 
         return response
